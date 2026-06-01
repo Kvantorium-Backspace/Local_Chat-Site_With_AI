@@ -1,0 +1,23 @@
+services:
+
+  ollama:
+    build: ./ollama
+    # Порт наружу не нужен — фронт обращается внутри сети Docker
+    expose:
+      - "11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # Перезапускается автоматически если упал
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      # Сайт доступен на порту 80 — открывай по IP компьютера в сети
+      - "80:80"
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
