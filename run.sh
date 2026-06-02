@@ -5,7 +5,7 @@ cd frontend/
 rm -rf dist node_modules
 echo
 echo "=========== 1/4 - Скачивание модулей ==========="
-echo0
+echo
 npm i 
 echo
 echo "=========== 2/4 - Создание билда ==========="
