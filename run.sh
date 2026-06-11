@@ -9,7 +9,6 @@
 #   ./run.sh frontend     — только frontend
 #   ./run.sh ollama     — только ollama
 # ─────────────────────────────────────────────────────────────────────────────
-
 set -e
 
 # Цвета для вывода
@@ -154,6 +153,7 @@ main() {
             log_info "──────────────────────────────────────────────"
             
             # Запускаю backend и ollama в фоне, frontend в foreground
+            start_ollama
             run_backend &
             BACKEND_PID=$!
             
