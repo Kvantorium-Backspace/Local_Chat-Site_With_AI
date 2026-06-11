@@ -3,15 +3,27 @@ import requests
 from dotenv import load_dotenv
 from os import getenv
 
+
 load_dotenv()
-OLLAMA_BASE_URL = getenv("OLLAMA_URL", "http://localhost:11434")
+
+def get_ollama_options():
+    return {
+        "num_ctx": int(getenv('OLLAMA_NUM_CTX', 4096)),
+        "num_gpu": int(getenv('OLLAMA_NUM_GPU', 1)),
+        "num_thread": int(getenv('OLLAMA_NUM_THREAD', 8)),
+        "temperature": float(getenv('OLLAMA_TEMPERATURE', 0.7)),
+        "top_p": float(getenv('OLLAMA_TOP_P', 0.9)),
+        "top_k": int(getenv('OLLAMA_TOP_K', 40)),
+        "repeat_penalty": float(getenv('OLLAMA_REPEAT_PENALTY', 1.1))
+    }
+
+OLLAMA_BASE_URL = getenv("OLLAMA_URL")
 
 try:
-    with open('../ollama/system_prompt.txt', 'r', encoding='utf-8') as file:
+    with open('../ollama/system-prompt.txt', 'r', encoding='utf-8') as file:
         systemPrompt = file.read()
 except:
     systemPrompt = ""
-
 
 # Проверка доступности Ollama.
 # Используется для пинга из frontend.
@@ -129,7 +141,12 @@ def chat_ollama_stream(messages: list, model: str):
     try:
         response = requests.post(
             f"{OLLAMA_BASE_URL}/api/chat",
-            json={"model": model, "messages": [{ "role": 'system', "content": systemPrompt }, *messages], "stream": True},
+            json={
+                "model": model, 
+                "messages": [{ "role": 'system', "content": systemPrompt }, *messages], 
+                "stream": True,
+                "options": get_ollama_options()
+            },
             stream=True,
             timeout=300,
         )

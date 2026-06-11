@@ -9,14 +9,14 @@
 export const MODELS = {
   fast: {
     id: 'mistral:latest',
-    label: 'Быстрая',
-    description: 'Основная локальная модель, заданная в конфиге.',
+    label: '🖥️Локальная',
+    description: 'Локальная модель. Способна отвечать на не сложные вопросы',
     thinkMode: false,
   },
   think: {
-    id: 'minicpm-v4.6:1b',
-    label: 'Думающая',
-    description: 'Вторая модель из конфигурации. Её ID берётся только из этого файла.',
+    id: 'minimax-m3:cloud',
+    label: '🌥️Облачная',
+    description: 'Облачная модель. Способна решать сложные задачи',
     thinkMode: true,
   },
 }

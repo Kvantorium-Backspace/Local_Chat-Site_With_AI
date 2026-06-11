@@ -132,8 +132,8 @@ export default function App() {
                 onClick={() => setActiveModel(key)}
                 title={model.description}
               >
-                {key === 'think' && <span className="model-btn__icon">🖥️</span>}
-                {key === 'fast' && <span className="model-btn__icon">⚡</span>}
+                {key === 'think'}
+                {key === 'fast'}
                 {model.label}
               </button>
             ))}
