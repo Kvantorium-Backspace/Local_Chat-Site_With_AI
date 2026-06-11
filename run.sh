@@ -4,9 +4,10 @@
 # Chat-site-with-LLM — Скрипт для запуска всего проекта
 #
 # Использование:
-#   ./run.sh              — запустить оба сервера (backend + frontend)
+#   ./run.sh              — запустить оба сервера (ollama + backend + frontend)
 #   ./run.sh backend      — только backend
 #   ./run.sh frontend     — только frontend
+#   ./run.sh ollama     — только ollama
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -e
@@ -21,6 +22,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/backend"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
 BACKEND_VENV="$BACKEND_DIR/venv"
+OLLAMA_DIR="$PROJECT_ROOT/ollama"
 
 # Функции вывода
 log_info() {
@@ -96,6 +98,19 @@ build_frontend() {
     log_success "Frontend собран в ./frontend/dist"
 }
 
+setup_ollama() {
+    log_info "Запуск docker..."
+    sudo systemctl start docker
+    log_info "Docker запущена"
+}
+
+start_ollama() {
+    log_info "Запуск ollama с моделями..."
+    cd "$OLLAMA_DIR"
+    sudo docker-compose up --build -d
+    log_info "ollama запущена"
+}
+
 # Главная функция
 main() {
     local mode="${1:-all}"
@@ -111,6 +126,10 @@ main() {
             log_info "Запуск dev-сервера..."
             run_frontend
             ;;
+        ollama)
+            setup_ollama
+            start_ollama
+            ;;
         build)
             setup_frontend
             build_frontend
@@ -124,18 +143,17 @@ main() {
             setup_backend
             setup_frontend
             build_frontend
+            setup_ollama
             
             log_info ""
-            log_info "Запускаю оба сервера..."
+            log_info "Запускаю сервера..."
             log_info "──────────────────────────────────────────────"
             log_info "Backend:  http://127.0.0.1:8000"
             log_info "Frontend: http://127.0.0.1:5173"
+            log_info "Ollama: http://127.0.0.1:11434"
             log_info "──────────────────────────────────────────────"
-            log_info ""
-            log_warn "Убедитесь, что Ollama запущен локально (http://127.0.0.1:11434)"
-            log_info ""
             
-            # Запускаю backend в фоне, frontend в foreground
+            # Запускаю backend и ollama в фоне, frontend в foreground
             run_backend &
             BACKEND_PID=$!
             
