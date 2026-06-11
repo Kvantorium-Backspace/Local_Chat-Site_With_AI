@@ -19,11 +19,12 @@ def get_ollama_options():
 
 OLLAMA_BASE_URL = getenv("OLLAMA_URL")
 
-try:
-    with open('../ollama/system-prompt.txt', 'r', encoding='utf-8') as file:
-        systemPrompt = file.read()
-except:
-    systemPrompt = ""
+def get_system_prompt():
+    try:
+        with open('../ollama/system-prompt.txt', 'r', encoding='utf-8') as file:
+            return file.read()
+    except:
+        return ""
 
 # Проверка доступности Ollama.
 # Используется для пинга из frontend.
@@ -81,7 +82,10 @@ def ask_ollama(prompt: str, model: str) -> dict:
     try:
         response = requests.post(
             f"{OLLAMA_BASE_URL}/api/generate",
-            json={"prompt": [{ "role": 'system', "content": systemPrompt }, *prompt], "model": model, "stream": False},
+            json={"prompt": [{ "role": 'system', "content": get_system_prompt() }, *prompt], 
+                  "model": model, 
+                  "stream": False,
+                  "options": get_ollama_options()},
             timeout=300,
         )
 
@@ -91,6 +95,7 @@ def ask_ollama(prompt: str, model: str) -> dict:
                 "status": True,
                 "message": f"Ответ получен. status_code: {response.status_code}",
                 "response": result.get("response", ""),
+                
             }
 
         return {
@@ -112,7 +117,10 @@ def chat_ollama(messages: list, model: str) -> dict:
     try:
         response = requests.post(
             f"{OLLAMA_BASE_URL}/api/chat",
-            json={"model": model, "messages": [{ "role": 'system', "content": systemPrompt }, *messages], "stream": False},
+            json={"model": model, 
+                  "messages": [{ "role": 'system', "content": get_system_prompt() }, *messages], 
+                  "stream": False,
+                  "options": get_ollama_options()},
             timeout=300,
         )
         response.raise_for_status()
@@ -143,7 +151,7 @@ def chat_ollama_stream(messages: list, model: str):
             f"{OLLAMA_BASE_URL}/api/chat",
             json={
                 "model": model, 
-                "messages": [{ "role": 'system', "content": systemPrompt }, *messages], 
+                "messages": [{ "role": 'system', "content": get_system_prompt() }, *messages], 
                 "stream": True,
                 "options": get_ollama_options()
             },
