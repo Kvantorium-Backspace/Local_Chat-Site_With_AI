@@ -89,14 +89,12 @@ body {
 .header__logo-mark {
   width: 46px;
   height: 46px;
-  border-radius: 14px;
   display: grid;
   place-items: center;
-  background: var(--grad-blue);
-  color: #fff;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  box-shadow: 0 8px 18px rgba(33,57,143,0.18);
+}
+
+.header__logo-image {
+  width: 100%;
 }
 
 .header__logo-text {
@@ -245,11 +243,9 @@ body {
   gap: 20px;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-}
 
-.chat::-webkit-scrollbar { width: 4px; }
-.chat::-webkit-scrollbar-track { background: transparent; }
-.chat::-webkit-scrollbar-thumb { background: rgba(33,57,143,0.18); border-radius: var(--radius); }
+  scrollbar-width: thin;
+}
 
 .chat__empty {
   flex: 1;

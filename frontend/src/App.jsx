@@ -3,6 +3,7 @@ import './App.css'
 
 import { useChatClient } from './api/index'
 import { MODELS } from './api/ModelsConfig'
+import logo from "./assets/logo.png"
 
 function Message({ msg }) {
   const isUser = msg.role === 'user'
@@ -92,7 +93,9 @@ export default function App() {
 
       <header className="header">
         <div className="header__logo">
-          <div className="header__logo-mark">Q</div>
+          <div className="header__logo-mark">
+            <img className="header__logo-image" src={logo} alt='Лого'/>
+          </div>
           <div className="header__logo-text">
             <span className="header__logo-title">Локальная нейросеть Кванториума</span>
             <span className="header__logo-sub">Разработано командой Backspace</span>
