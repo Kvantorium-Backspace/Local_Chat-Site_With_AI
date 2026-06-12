@@ -7,7 +7,8 @@
 #   ./run.sh              — запустить оба сервера (ollama + backend + frontend)
 #   ./run.sh backend      — только backend
 #   ./run.sh frontend     — только frontend
-#   ./run.sh ollama     — только ollama
+#   ./run.sh ollama       — только ollama
+#   ./run.sh stop         — полностью остановить проект
 # ─────────────────────────────────────────────────────────────────────────────
 set -e
 
@@ -110,6 +111,25 @@ start_ollama() {
     log_info "ollama запущена"
 }
 
+stop_project() {
+    log_info "Останавливаю проект..."
+
+    pkill -f "uvicorn main:app --host 127.0.0.1 --port 8000" 2>/dev/null || true
+    pkill -f "vite --host 127.0.0.1 --port 5173" 2>/dev/null || true
+    pkill -f "npm run dev -- --host 127.0.0.1 --port 5173" 2>/dev/null || true
+
+    if [ -d "$OLLAMA_DIR" ] && command -v docker >/dev/null 2>&1; then
+        (
+            cd "$OLLAMA_DIR"
+            docker compose down --remove-orphans 2>/dev/null || \
+            docker-compose down --remove-orphans 2>/dev/null || \
+            sudo docker-compose down --remove-orphans 2>/dev/null
+        ) || true
+    fi
+
+    log_success "Проект полностью остановлен"
+}
+
 # Главная функция
 main() {
     local mode="${1:-all}"
@@ -133,6 +153,9 @@ main() {
             setup_frontend
             build_frontend
             log_success "Сборка завершена!"
+            ;;
+        stop)
+            stop_project
             ;;
         all|"")
             log_info "════════════════════════════════════════════════"
@@ -166,12 +189,13 @@ main() {
             run_frontend
             ;;
         *)
-            echo "Использование: $0 [backend|frontend|build|all]"
+            echo "Использование: $0 [backend|frontend|build|all|stop]"
             echo ""
             echo "  backend   — запустить только backend сервер"
             echo "  frontend  — собрать и запустить frontend dev-сервер"
             echo "  build     — собрать frontend для production"
             echo "  all       — запустить всё (по умолчанию)"
+            echo "  stop      — полностью остановить проект"
             exit 1
             ;;
     esac
