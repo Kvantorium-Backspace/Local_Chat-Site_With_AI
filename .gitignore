@@ -13,6 +13,9 @@ backend/.env.local
 backend/.venv
 backend/env/
 
+# Ollama
+ollama/ModelsConfig.jsx
+
 # OS
 .DS_Store
 Thumbs.db
