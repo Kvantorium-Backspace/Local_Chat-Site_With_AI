@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useRef, useState } from 'react'
-import { MODELS } from './ModelsConfig'
+import { MODELS } from '../../../ollama/ModelsConfig'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
