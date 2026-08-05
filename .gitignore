@@ -37,8 +37,5 @@ yarn-debug.log*
 yarn-error.log*
 
 # Misc
-.env
-.env.local
-.env.*.local
 dist/
 build/
