@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # 1. OLLAMA
+  # ==========================================
+  ollama:
+    build: ./ollama
+    container_name: chat-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_NUM_CTX=${OLLAMA_NUM_CTX:-4096}
+      - OLLAMA_NUM_GPU=${OLLAMA_NUM_GPU:-1}
+      - OLLAMA_NUM_THREAD=${OLLAMA_NUM_THREAD:-4}
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - chat-network
+    restart: unless-stopped
+    # Раскомментируйте для GPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # ==========================================
+  # 2. БЭКЕНД (FastAPI)
+  # ==========================================
+  backend:
+    build: ./backend
+    container_name: chat-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_NUM_CTX=${OLLAMA_NUM_CTX:-4096}
+      - OLLAMA_TEMPERATURE=${OLLAMA_TEMPERATURE:-0.7}
+      - OLLAMA_TOP_P=${OLLAMA_TOP_P:-0.9}
+      - OLLAMA_TOP_K=${OLLAMA_TOP_K:-40}
+      - OLLAMA_REPEAT_PENALTY=${OLLAMA_REPEAT_PENALTY:-1.1}
+    env_file:
+      - .env
+    depends_on:
+      - ollama
+    networks:
+      - chat-network
+    restart: unless-stopped
+
+  # ==========================================
+  # 3. ФРОНТЕНД (React)
+  # ==========================================
+  frontend:
+    build: ./frontend
+    container_name: chat-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - chat-network
+    restart: unless-stopped
+
+networks:
+  chat-network:
+    driver: bridge
+
+volumes:
+  ollama_data:

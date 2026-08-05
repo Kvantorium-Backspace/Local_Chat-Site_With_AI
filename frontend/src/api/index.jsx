@@ -1,5 +1,4 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// frontend/src/api/index.jsx
 //
 // Это слой общения с backend и Ollama.
 // Здесь находятся:
@@ -10,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useRef, useState } from 'react'
-import { MODELS } from '../../../ollama/ModelsConfig'
+import { MODELS } from './ModelsConfig'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 

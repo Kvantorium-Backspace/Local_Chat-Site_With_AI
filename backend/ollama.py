@@ -1,8 +1,8 @@
 import json
+import os
 import requests
 from dotenv import load_dotenv
 from os import getenv
-
 
 load_dotenv()
 
@@ -17,17 +17,18 @@ def get_ollama_options():
         "repeat_penalty": float(getenv('OLLAMA_REPEAT_PENALTY', 1.1))
     }
 
-OLLAMA_BASE_URL = getenv("OLLAMA_URL")
+OLLAMA_BASE_URL = getenv("OLLAMA_URL", "http://ollama:11434")
 
 def get_system_prompt():
+    # Исправленный путь - файл должен лежать в папке backend
+    prompt_path = os.path.join(os.path.dirname(__file__), 'system-prompt.txt')
     try:
-        with open('../ollama/system-prompt.txt', 'r', encoding='utf-8') as file:
+        with open(prompt_path, 'r', encoding='utf-8') as file:
             return file.read()
     except:
         return ""
 
-# Проверка доступности Ollama.
-# Используется для пинга из frontend.
+# Проверка доступности Ollama
 def ping_ollama() -> dict:
     try:
         response = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5)
@@ -47,9 +48,7 @@ def ping_ollama() -> dict:
             "message": f"Ошибка подключения к Ollama: {e}",
         }
 
-
-# Получение списка моделей из Ollama.
-# Нужен для выбора модели в интерфейсе.
+# Получение списка моделей из Ollama
 def list_models() -> dict:
     try:
         response = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=10)
@@ -75,17 +74,17 @@ def list_models() -> dict:
             "models": [],
         }
 
-
-# Обычный запрос к Ollama.
-# Возвращает готовый текст ответа.
+# Обычный запрос к Ollama
 def ask_ollama(prompt: str, model: str) -> dict:
     try:
         response = requests.post(
             f"{OLLAMA_BASE_URL}/api/generate",
-            json={"prompt": [{ "role": 'system', "content": get_system_prompt() }, *prompt], 
-                  "model": model, 
-                  "stream": False,
-                  "options": get_ollama_options()},
+            json={
+                "prompt": prompt, 
+                "model": model, 
+                "stream": False,
+                "options": get_ollama_options()
+            },
             timeout=300,
         )
 
@@ -95,7 +94,6 @@ def ask_ollama(prompt: str, model: str) -> dict:
                 "status": True,
                 "message": f"Ответ получен. status_code: {response.status_code}",
                 "response": result.get("response", ""),
-                
             }
 
         return {
@@ -110,17 +108,22 @@ def ask_ollama(prompt: str, model: str) -> dict:
             "response": "",
         }
 
-
-# Запрос с историей сообщений через Ollama /api/chat.
-# Это лучший вариант для поддержки истории в интерфейсе.
+# Запрос с историей сообщений через Ollama /api/chat
 def chat_ollama(messages: list, model: str) -> dict:
     try:
+        # Добавляем system prompt в начало
+        system_prompt = get_system_prompt()
+        if system_prompt:
+            messages = [{"role": "system", "content": system_prompt}] + messages
+
         response = requests.post(
             f"{OLLAMA_BASE_URL}/api/chat",
-            json={"model": model, 
-                  "messages": [{ "role": 'system', "content": get_system_prompt() }, *messages], 
-                  "stream": False,
-                  "options": get_ollama_options()},
+            json={
+                "model": model, 
+                "messages": messages, 
+                "stream": False,
+                "options": get_ollama_options()
+            },
             timeout=300,
         )
         response.raise_for_status()
@@ -142,16 +145,19 @@ def chat_ollama(messages: list, model: str) -> dict:
             "model": model,
         }
 
-
-# Стриминговый ответ из Ollama.
-# Генератор возвращает куски текста по одному.
+# Стриминговый ответ из Ollama (синхронная версия для FastAPI)
 def chat_ollama_stream(messages: list, model: str):
     try:
+        # Добавляем system prompt в начало
+        system_prompt = get_system_prompt()
+        if system_prompt:
+            messages = [{"role": "system", "content": system_prompt}] + messages
+
         response = requests.post(
             f"{OLLAMA_BASE_URL}/api/chat",
             json={
                 "model": model, 
-                "messages": [{ "role": 'system', "content": get_system_prompt() }, *messages], 
+                "messages": messages, 
                 "stream": True,
                 "options": get_ollama_options()
             },
@@ -174,5 +180,6 @@ def chat_ollama_stream(messages: list, model: str):
 
             if content:
                 yield f"data: {json.dumps({'response': content})}\n\n"
+                
     except requests.exceptions.RequestException as e:
         yield f"data: {json.dumps({'response': f'Ошибка подключения к Ollama: {e}'})}\n\n"
